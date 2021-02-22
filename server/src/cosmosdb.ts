@@ -4,6 +4,7 @@ import { getServerSettings } from './endpoints/serverSettings'
 // TODO: Partition key issues
 
 import { RoomNote } from './roomNote'
+import { Room } from './rooms'
 import { DEFAULT_SERVER_SETTINGS, ServerSettings } from './types'
 import { User } from './user'
 
@@ -223,7 +224,7 @@ const CosmosDB = {
 
     const container = getContainer('serverSettings')
     return container.item('serverSettings').replace({ ...settings, ...data })
-  }
+  },
 
   // async addRoomNote(roomId: string, note: RoomNote) {}
 
@@ -233,6 +234,23 @@ const CosmosDB = {
   //   async unlikeRoomNote(roomId: string, noteId: string, userId: string) {}
 
   //   async getRoomNotes(roomId: string) {
+
+  async getRoomData (): Promise<{[name: string]: Room}> {
+    const container = await getContainer('rooms')
+    const { resources: rooms } = await container.items.readAll().fetchAll()
+
+    const result: {[name: string]: Room} = {};
+
+    (rooms as unknown as Room[])
+      .forEach((r) => { result[r.id] = r })
+    return result
+  },
+
+  async setRoomData (roomData: Room) {
+    const container = getContainer('rooms')
+    const result = await container.item(roomData.id, partitionKey).replace(roomData)
+    return (result.item as unknown) as Room
+  }
 }
 
 export default CosmosDB
