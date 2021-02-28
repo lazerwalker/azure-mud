@@ -52,6 +52,8 @@ export interface Room {
   // This should hopefully eventually be auto-generated and mandatory
   // but hand-coding for testing purposes now
   chatGuid?: string
+
+  script?: string
 }
 
 const indexRoomData: { [name: string]: Room } = {
@@ -194,10 +196,84 @@ const indexRoomData: { [name: string]: Room } = {
       Once you've finished here, you can [[leap into the shimmering portal->statue]]`,
     specialFeatures: [SpecialFeature.FullRoomIndex],
     hidden: true
+  },
+  potionRoom: {
+    id: 'potionRoom',
+    displayName: 'The (Improved) Bar',
+    shortName: 'the (improved) bar',
+    description: 'A bar that looks very similar to the other one. Just behind the bar lies {{cauldron}}. Behind the bar are numerous ingredients: {{blue beetles}}, {{yellow saffron}}, and {{red liquid}}. Below the cauldron is {{lever}}',
+    script: `
+      # take blue beetles
+      -- todo: How does this get access to "cauldron"?
+      [action is "take" and item is "blue beetles" and cauldron.color is "blue"]
+      printLocal: This must have been the same blue used to color the liquid in the cauldron.
+
+
+      `
   }
 }
 
 export const roomData: { [name: string]: Room } = {
   ...indexRoomData,
   ...loungeDungeonRoomData
+}
+
+type Item = {
+  id: string
+  description: string
+  shortDescription: string
+  script: string // Storyboard
+  variables?: any
+}
+
+// TODO: The main missing thing is a mapping from actions to which object is responsible for it
+// Do we need a direct mapping, or can we wire things up in a way that any object can listen to an event?
+// Does this require a rigid taxonomy of verbs?
+// e.g. "pour X in Y" ("use X on Y", etc) has a concept of direct/indirect object?
+// separately, how do we handle synonyms?
+
+/*
+items have list of synonyms
+there's a list of verbs with synonyms
+list of prepositions to blindly accept
+*/
+
+const items: { [id: string]: Item } = {
+  cauldron: {
+    id: 'cauldron',
+    description: 'a large cast-iron black cauldron with a fire roaring under it. Inside it is a {color} liquid slowly simmering. There is a big spoon you can use to [[stir->stir cauldron]] it. {action}',
+    shortDescription: 'cauldron',
+    script: `
+      [player.holding.type is "colorant"]
+      set action to "[[Pour in {player.holding}->???]]
+
+      [not player.holding]
+      unset action
+
+      [action is "pour" and directObject is colorant]
+      calculateNewColor: directObject.colorant
+      printAction: "pours the {item} into the cauldron. {color isnt oldcolor ? 'The liquid sputters and turns {color}' : 'There is no visible change to the liquid'}
+    `,
+    variables: {
+      color: 'clear'
+    }
+  },
+  'blue beetles': {
+    id: 'blue beetles',
+    description: 'a glass jar filed with [[brilliantly blue crushed beetles->take blue beetles]]',
+    shortDescription: 'blue beetles',
+    script: '',
+    variables: {
+      type: 'colorant'
+    }
+  }
+  // 'yellow saffron': {
+
+  // },
+  // 'red liquid': {
+
+  // },
+  // lever: {
+
+  // }
 }
