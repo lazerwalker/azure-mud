@@ -53,6 +53,7 @@ export interface RoomResponse {
   presenceData?: { [roomId: string]: string[] };
   users?: { [userId: string]: MinimalUser };
   roomData?: { [roomId: string]: Room };
+  itemData?: { [itemId: string]: any}
   profile?: PublicUser;
   roomNotes?: RoomNote[]
 }

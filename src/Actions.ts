@@ -27,6 +27,8 @@ export type Action =
   | PlayerEnteredAction
   | PlayerLeftAction
   | UserMapAction
+  | ItemMapAction
+  | ItemScriptsAction
   | PlayerBannedAction
   | PlayerUnbannedAction
   | UpdateProfileColorAction
@@ -87,6 +89,8 @@ export enum ActionType {
   PlayerLeft = 'PLAYER_LEFT',
   Error = 'ERROR',
   UserMap = 'USER_MAP',
+  ItemMap = 'ITEM_MAP',
+  ItemScripts = 'ITEM_SCRIPTS',
   PlayerBanned = 'PLAYER_BANNED',
   PlayerUnbanned = 'PLAYER_UNBANNED',
   UpdateProfileColor = 'UPDATE_PROFILE_COLOR',
@@ -436,6 +440,35 @@ export const UserMapAction = (map: {
 }): UserMapAction => {
   return {
     type: ActionType.UserMap,
+    value: map
+  }
+}
+
+interface ItemMapAction {
+  type: ActionType.ItemMap;
+  value: { [itemId: string]: any };
+}
+
+// TODO: This should be itemData instead of itemMap
+export const ItemMapAction = (map: {
+  [itemId: string]: any;
+}): ItemMapAction => {
+  return {
+    type: ActionType.ItemMap,
+    value: map
+  }
+}
+
+interface ItemScriptsAction {
+  type: ActionType.ItemScripts;
+  value: { [itemId: string]: any };
+}
+
+export const ItemScriptsAction = (map: {
+  [itemId: string]: any;
+}): ItemScriptsAction => {
+  return {
+    type: ActionType.ItemScripts,
     value: map
   }
 }

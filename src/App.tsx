@@ -291,6 +291,8 @@ const App = () => {
                       room={state.roomData[state.roomId]}
                       userId={state.userId}
                       roomData={state.roomData}
+                      itemData={state.itemData}
+                      self={state.userMap[state.userId]}
                     />
                   ) : null}
                   <ChatView messages={state.messages} autoscrollChat={state.autoscrollChat} serverSettings={state.serverSettings} />

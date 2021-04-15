@@ -33,7 +33,7 @@ import {
   PlayerBannedAction,
   PlayerUnbannedAction,
   ReceivedServerSettingsAction,
-  ShowModalAction, CommandMessageAction, CaptionMessageAction
+  ShowModalAction, CommandMessageAction, CaptionMessageAction, ItemMapAction, ItemScriptsAction
 } from './Actions'
 import { User } from '../server/src/user'
 import { convertServerRoomData } from './room'
@@ -54,9 +54,10 @@ export async function connect (userId: string, dispatch: Dispatch<Action>) {
 
   const result: RoomResponse = await callAzureFunction('connect')
 
-  console.log(result)
+  console.log('/connect', result)
   dispatch(UpdatedCurrentRoomAction(result.roomId))
   dispatch(UserMapAction(result.users))
+  dispatch(ItemMapAction(result.itemData))
 
   if (result.roomData) {
     dispatch(UpdatedRoomDataAction(convertServerRoomData(result.roomData)))

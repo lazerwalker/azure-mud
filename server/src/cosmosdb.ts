@@ -250,6 +250,29 @@ const CosmosDB = {
     const container = getContainer('rooms')
     const result = await container.item(roomData.id, partitionKey).replace(roomData)
     return (result.item as unknown) as Room
+  },
+
+  async setItemState (itemId: string, itemData: any) {
+    const container = getContainer('items')
+    const result = await container.item(itemId, partitionKey).replace(itemData)
+  },
+
+  async getItemState (itemId: string): Promise<any> {
+    const container = getContainer('items')
+    const { resource: result } = await container.item(itemId).read()
+    return result || {}
+  },
+
+  async getAllItems (): Promise<{[itemId: string]: any}> {
+    const container = await getContainer('items')
+    const { resources: items } = await container.items.readAll().fetchAll()
+
+    const result = {}
+    items.forEach(i => {
+      result[i.itemId] = i
+    })
+
+    return result
   }
 }
 

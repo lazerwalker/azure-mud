@@ -28,14 +28,14 @@ const pickUpItem: AuthenticatedEndpointFunction = async (user: User, inputs: any
     log(privateActionString)
   } else if (inputs.item) {
     item = inputs.item
-    if (!allowedItems.includes(item)) {
-      return {
-        httpResponse: {
-          status: 400,
-          body: { error: 'You included an invalid item' }
-        }
-      }
-    }
+    // if (!allowedItems.includes(item)) {
+    //   return {
+    //     httpResponse: {
+    //       status: 400,
+    //       body: { error: 'You included an invalid item' }
+    //     }
+    //   }
+    // }
   } else if (inputs.drop) {
     item = undefined
   } else {

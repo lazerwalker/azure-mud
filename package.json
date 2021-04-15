@@ -22,7 +22,7 @@
     "@azure/communication-common": "^1.0.0-beta.3",
     "axios": "^0.19.2",
     "localforage": "^1.9.0",
-    "microsoft-cognitiveservices-speech-sdk": "^1.15.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.15.1",
     "node-emoji": "^1.10.0",
     "react": "^16.14",
     "react-contextmenu": "^2.14.0",
@@ -32,8 +32,9 @@
     "react-tooltip": "^4.2.8",
     "request": "^2.88.2",
     "simple-peer": "^9.7.2",
+    "storyboard-engine": "0.0.5",
     "ts-node": "^9.0.0",
-    "twilio-video": "^2.8.0",
+    "twilio-video": "^2.12.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

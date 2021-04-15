@@ -1,6 +1,6 @@
 import { globalPresenceMessage } from '../globalPresenceMessage'
 import { userHeartbeatReceived } from '../heartbeat'
-import { roomData } from '../rooms'
+import { items, roomData } from '../rooms'
 import setUpRoomsForUser from '../setUpRoomsForUser'
 import { RoomResponse } from '../types'
 import { User, isMod, minimizeUser } from '../user'
@@ -29,6 +29,8 @@ const connect: AuthenticatedEndpointFunction = async (user: User, inputs: any, l
   const response: RoomResponse = {
     roomId: user.roomId,
     presenceData: await DB.allRoomOccupants(),
+    // TODO: Fetch this from the DB
+    itemData: items,
     users: userMap,
     roomData,
     // TODO: Have a function to delete the keys we don't need

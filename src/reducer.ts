@@ -49,6 +49,7 @@ export interface State {
   userId?: string;
   userMap: { [userId: string]: MinimalUser };
   roomData: { [roomId: string]: Room };
+  itemData: { [itemId: string]: any };
   profileData?: PublicUser;
 
   messages: Message[];
@@ -93,6 +94,7 @@ export const defaultState: State = {
   autoscrollChat: true,
   userMap: {},
   roomData: {},
+  itemData: {},
   inMediaChat: false,
   speakingPeerIds: [],
   activeModal: Modal.None,
@@ -105,6 +107,7 @@ export default (oldState: State, action: Action): State => {
   console.log('In reducer', action)
 
   // TODO: This could hurt perf when we have a lot of messages
+  console.log(oldState)
   const state: State = JSON.parse(JSON.stringify(oldState))
   state.prepopulatedInput = undefined
 
@@ -264,6 +267,10 @@ export default (oldState: State, action: Action): State => {
     if (state.visibleProfile && state.userMap[state.visibleProfile.id]) {
       fetchProfile(state.visibleProfile.id)
     }
+  }
+
+  if (action.type === ActionType.ItemMap) {
+    state.itemData = { ...state.itemData, ...action.value }
   }
 
   if (action.type === ActionType.PlayerBanned) {
