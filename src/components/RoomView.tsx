@@ -54,8 +54,12 @@ export default function RoomView (props: Props) {
         indirectObject: room.id
       }
       await Promise.all(Object.values(itemData).map(async (item) => {
-        const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
-        newItemData[item.itemId] = newItem
+        try {
+          const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
+          newItemData[item.itemId] = newItem
+        } catch (e) {
+          console.log(e)
+        }
       }))
       setTimeout(() => {
         dispatch(ItemMapAction(newItemData))
@@ -67,10 +71,9 @@ export default function RoomView (props: Props) {
   const dropHeldItem = async () => {
     dropItem()
 
-    // TODO: Run script on dropping
-    // It's a pain to do this here, because this scope doesn't have access to itemData, itemScripts, etc
-    // we could thread it through
-    // we could also refactor the "drop item" link to be entirely in storyboard land
+    // TODO: We want to be able to trigger this from within actions
+    // I don't know how to expose this into Storyboard.ts without moving everything there.
+    // But what does that mean?
 
     const newItemData = { ...props.itemData }
     const action: TextInput = {
@@ -79,8 +82,12 @@ export default function RoomView (props: Props) {
       indirectObject: room.id
     }
     await Promise.all(Object.values(itemData).map(async (item) => {
-      const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
-      newItemData[item.itemId] = newItem
+      try {
+        const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
+        newItemData[item.itemId] = newItem
+      } catch (e) {
+        console.log(e)
+      }
     }))
     dispatch(ItemMapAction(newItemData))
   }
@@ -109,7 +116,7 @@ export default function RoomView (props: Props) {
         linkActions[action]()
       } else {
         const parsedAction = parse(action, itemData)
-        console.log(parsedAction)
+        console.log(action, parsedAction, itemData)
 
         if (parsedAction.verb === 'take') {
           await pickUpItem(parsedAction.directObject.itemId);
@@ -119,8 +126,12 @@ export default function RoomView (props: Props) {
 
         const newItemData = { ...itemData }
         await Promise.all(Object.values(itemData).map(async (item) => {
-          const newItem = await runStoryboardOnItem({ action: parsedAction, item, itemData, player: self, dispatch })
-          newItemData[item.itemId] = newItem
+          try {
+            const newItem = await runStoryboardOnItem({ action: parsedAction, item, itemData, player: self, dispatch })
+            newItemData[item.itemId] = newItem
+          } catch (e) {
+            console.log(e)
+          }
         }))
 
         // TODO: Dispatch this over the network as well,
@@ -400,7 +411,7 @@ export function StreamEmbed () {
 
 async function runStoryboardOnItem ({ action, item, itemData, player, dispatch }: { action: TextInput; item: any; itemData: { [itemId: string]: any}; player: any; dispatch: React.Dispatch<Action> }) {
   const script = item.script
-  delete item.script
+  // delete item.script
 
   const result = await attemptActionOnItem({
     action: action,

@@ -1,6 +1,6 @@
 import { MinimalUser } from '../server/src/user'
 import { Action, CommandMessageAction } from './Actions'
-import { sendChatMessage } from './networking'
+import { dropItem, sendChatMessage } from './networking'
 
 import { Dispatch } from 'react'
 import { Game } from 'storyboard-engine'
@@ -15,7 +15,11 @@ export type TextInput = {
 
 export function parse (input: string, itemData): TextInput|undefined {
   // Currently the world's most naive parser
-  const [verb, directObjectId, preposition, indirectObjectId] = input.split(' ').map(s => s.toLowerCase())
+  let [verb, directObjectId, preposition, indirectObjectId] = input.split(' ')
+
+  if (verb) verb = verb.toLowerCase()
+  if (preposition) preposition = preposition.toLowerCase()
+
   const directObject = itemData[directObjectId]
   const indirectObject = itemData[indirectObjectId]
   return { verb, directObject, preposition, indirectObject }
@@ -23,6 +27,7 @@ export function parse (input: string, itemData): TextInput|undefined {
 
 export async function attemptActionOnItem (params: { action?: TextInput, itemState: any, script: string, itemData: any, player: MinimalUser, dispatch: Dispatch<Action>}): Promise<any> {
   const { action, itemState, script, itemData, player, dispatch } = params
+
   itemState.player = player
   if (itemState.player.holding && itemState.player.holding.player) {
     delete itemState.player.holding.player
@@ -32,7 +37,8 @@ export async function attemptActionOnItem (params: { action?: TextInput, itemSta
   console.log('Item state', JSON.stringify(itemState, null, 2))
   return new Promise((resolve, reject) => {
     // TODO: Thin out itemData so it only includes available objects in the current room
-    if (!script) {
+    if (!script || script.trim() === '') {
+      console.log(script)
       reject(new Error(`Story not included for ${itemState.itemId}`))
       return
     }
@@ -46,34 +52,47 @@ export async function attemptActionOnItem (params: { action?: TextInput, itemSta
       }
 
       game.addOutput('printLocal', (text, passageId) => {
+        console.log('Printing local', text)
         dispatch(CommandMessageAction(text))
         game.completePassage(passageId)
       })
 
       game.addOutput('printAction', (text, passageId) => {
+        console.log('Printing action', text)
         sendChatMessage(uuidv4(), `/me ${text}`)
         game.completePassage(passageId)
+      })
+
+      game.addOutput('dropItem', (itemId, passageId) => {
+        dropItem()
       })
 
       game.addOutput('calculateNewColor', (inputColor, passageId) => {
         console.log('Calculating color', inputColor)
         const currentColor = game.state.color
-        const map = {
-          'blue-yellow': 'green',
-          'blue-red': 'purple',
-          'red-yellow': 'orange'
-        }
-
-        const colorString = [currentColor, inputColor].sort().join('-')
-
         let newColor = currentColor
-        if (!inputColor === currentColor) {
-          newColor = map[colorString] || 'brown'
 
-          if (inputColor === 'clear') newColor = inputColor
+        if (inputColor === 'clear') {
+          newColor = 'clear'
+        } else {
+          const map = {
+            'blue-yellow': 'green',
+            'blue-red': 'purple',
+            'red-yellow': 'orange'
+          }
+
+          const colorString = [currentColor, inputColor].sort().join('-')
+
+          if (currentColor === 'clear') {
+            console.log('Was clear')
+            newColor = inputColor
+          } else if (inputColor !== currentColor) {
+            newColor = map[colorString] || 'brown'
+          }
         }
 
         game.receiveInput('color', newColor)
+        game.receiveInput('oldcolor', currentColor)
         game.completePassage(passageId)
       })
 

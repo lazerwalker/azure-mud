@@ -218,35 +218,6 @@ type Item = {
   [key: string]: any
 }
 
-// TODO: The main missing thing is a mapping from actions to which object is responsible for it
-// Do we need a direct mapping, or can we wire things up in a way that any object can listen to an event?
-// Does this require a rigid taxonomy of verbs?
-// e.g. "pour X in Y" ("use X on Y", etc) has a concept of direct/indirect object?
-// separately, how do we handle synonyms?
-
-/*
-items have list of synonyms
-there's a list of verbs with synonyms
-list of prepositions to blindly accept
-
-parser:
-[verb] [noun-direct]
-[verb] [noun-direct] [preposition] [noun-indirect]
-
-"pour beetles", "pour into cauldron", and "pour beetles into cauldron" should all work
-
-To think about: "pour into the cauldron" should work
-
-Parse a sentence:
-- Normalize verbs/nouns based on synonym lists
-  - noun synonyms are a property on each object. TODO: how to handle overlap?
-  - verb synonyms need to live in a separate list somewhere
-- For nouns, find full item object state
-- Set Storyboard state: "verb", "directObject", "indirectObject", "preposition"
-- Do a Storyboard bag pass
-
-*/
-
 export const items: { [id: string]: Item } = {
   cauldron: {
     itemId: 'cauldron',
@@ -268,10 +239,15 @@ export const items: { [id: string]: Item } = {
 
       ## pour
       [action.verb is "pour" and action.directObject.isColorant]
-      calculateNewColor: {directObject.color}
-      printLocal: {action}
-      printAction: "pours the {action.directObject.shortDescription} into the cauldron. {color isnt oldcolor ? 'The liquid sputters and turns {color}' : 'There is no visible change to the liquid'}"
-    
+      calculateNewColor: {action.directObject.color}
+
+      -- TODO: I would love if we could do conditionals within strings, and include this as a single code path, a la modern React code
+      [if color isnt oldcolor]
+        printAction: "pours the {action.directObject.shortDescription} into the cauldron. The liquid sputters and turns {color}."
+      [if color is oldcolor]
+        printAction: "pours the {action.directObject.shortDescription} into the cauldron. There is no visible change to the liquid."
+      dropItem: {action.directObject.itemId}
+
       ## resetColor
       [action.verb is "pull" and action.directObject.itemId is "lever"]
       printLocal: "You pull the lever and the liquid swirls away, replaced with a new clear liquid."
