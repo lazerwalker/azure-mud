@@ -1,5 +1,5 @@
 import { MinimalUser } from '../server/src/user'
-import { Action, CommandMessageAction } from './Actions'
+import { Action, CommandMessageAction, ItemMapAction } from './Actions'
 import { dropItem, sendChatMessage } from './networking'
 
 import { Dispatch } from 'react'
@@ -23,6 +23,44 @@ export function parse (input: string, itemData): TextInput|undefined {
   const directObject = itemData[directObjectId]
   const indirectObject = itemData[indirectObjectId]
   return { verb, directObject, preposition, indirectObject }
+}
+
+export async function dispatchStoryboardAction (action: TextInput, params: {itemData: any, player: MinimalUser, dispatch: Dispatch<Action>}) {
+  const { player, itemData, dispatch } = params
+  const newItemData = { ...itemData }
+
+  await Promise.all(Object.values(itemData).map(async (item: any) => {
+    try {
+      const script = item.script
+      // delete item.script
+
+      const result = await attemptActionOnItem({
+        action,
+        itemState: item,
+        script,
+        player,
+        itemData,
+        dispatch
+      })
+      let newItem = { ...result[item.itemId] }
+
+      delete result.graph
+      delete result.bag
+      delete result.player
+      delete result.action
+      delete newItem.player
+      Object.keys(itemData).forEach(i => {
+        delete result[i]
+      })
+      newItem = { ...newItem, ...result }
+      console.log('Attempted action on item!', newItem, result)
+      // TODO: Do we need to be more discriminating about which parts of itemData we return?
+      return newItem
+    } catch (e) {
+      console.log(e)
+    }
+  }))
+  dispatch(ItemMapAction(newItemData))
 }
 
 export async function attemptActionOnItem (params: { action?: TextInput, itemState: any, script: string, itemData: any, player: MinimalUser, dispatch: Dispatch<Action>}): Promise<any> {

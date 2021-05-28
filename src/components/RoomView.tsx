@@ -18,7 +18,7 @@ import { FullRoomIndexRoomView } from './feature/FullRoomIndexViews'
 import { linkActions } from '../linkActions'
 import { useContext } from 'react'
 import { useMediaChatContext } from '../videochat/mediaChatContext'
-import { attemptActionOnItem, parse, TextInput } from '../storyboard'
+import { attemptActionOnItem, dispatchStoryboardAction, parse, TextInput } from '../storyboard'
 import { MinimalUser } from '../../server/src/user'
 import { keyPathify } from 'storyboard-engine'
 
@@ -53,17 +53,13 @@ export default function RoomView (props: Props) {
         directObject: self.id, // TODO: How will this be used?
         indirectObject: room.id
       }
-      await Promise.all(Object.values(itemData).map(async (item) => {
-        try {
-          const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
-          newItemData[item.itemId] = newItem
-        } catch (e) {
-          console.log(e)
-        }
-      }))
-      setTimeout(() => {
-        dispatch(ItemMapAction(newItemData))
-      }, 0)
+
+      // TODO: Might need to defer this? That's what we did before
+      await dispatchStoryboardAction(action, {
+        itemData: newItemData,
+        player: self,
+        dispatch
+      })
     })()
     // TODO: Does props.room change for any reason other than a new room?
   }, [room.id])
@@ -81,15 +77,11 @@ export default function RoomView (props: Props) {
       directObject: (self as any).holding,
       indirectObject: room.id
     }
-    await Promise.all(Object.values(itemData).map(async (item) => {
-      try {
-        const newItem = await runStoryboardOnItem({ action, item, itemData, player: { ...self }, dispatch })
-        newItemData[item.itemId] = newItem
-      } catch (e) {
-        console.log(e)
-      }
-    }))
-    dispatch(ItemMapAction(newItemData))
+    await dispatchStoryboardAction(action, {
+      itemData: newItemData,
+      player: self,
+      dispatch
+    })
   }
 
   // This is very silly.
@@ -124,23 +116,11 @@ export default function RoomView (props: Props) {
           (self as any).holding = itemData[parsedAction.directObject.itemId]
         }
 
-        const newItemData = { ...itemData }
-        await Promise.all(Object.values(itemData).map(async (item) => {
-          try {
-            const newItem = await runStoryboardOnItem({ action: parsedAction, item, itemData, player: self, dispatch })
-            newItemData[item.itemId] = newItem
-          } catch (e) {
-            console.log(e)
-          }
-        }))
-
-        // TODO: Dispatch this over the network as well,
-        // thinking through which things we should/shouldn't dispatch
-        dispatch(ItemMapAction(newItemData))
-
-        // TODO: Grab the state object from each item, update itemData
-        // fire off networked event if appropriate? Is that a thing?
-        // This also needs to proactively rerender this component
+        await dispatchStoryboardAction(action, {
+          itemData: itemData,
+          player: self,
+          dispatch
+        })
       }
     }
   }
@@ -407,32 +387,4 @@ export function StreamEmbed () {
       <iframe id="captions" title="captions" ref={captionsRef} width="560" height="100" src="https://www.streamtext.net/player/?event=RoguelikeCelebration&chat=false&header=false&footer=false&indicator=false&ff=Consolas&fgc=93a1a1" frameBorder="0" allow="autoplay; encrypted-media;" allowFullScreen></iframe>
     </div>
   )
-}
-
-async function runStoryboardOnItem ({ action, item, itemData, player, dispatch }: { action: TextInput; item: any; itemData: { [itemId: string]: any}; player: any; dispatch: React.Dispatch<Action> }) {
-  const script = item.script
-  // delete item.script
-
-  const result = await attemptActionOnItem({
-    action: action,
-    itemState: item,
-    script: script,
-    player,
-    itemData,
-    dispatch
-  })
-  let newItem = { ...result[item.itemId] }
-
-  delete result.graph
-  delete result.bag
-  delete result.player
-  delete result.action
-  delete newItem.player
-  Object.keys(itemData).forEach(i => {
-    delete result[i]
-  })
-  newItem = { ...newItem, ...result }
-  console.log('Attempted action on item!', newItem, result)
-  // TODO: Do we need to be more discriminating about which parts of itemData we return?
-  return newItem
 }
