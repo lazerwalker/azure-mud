@@ -55,7 +55,7 @@ export async function dispatchStoryboardAction (action: TextInput, params: {item
       newItem = { ...newItem, ...result }
       console.log('Attempted action on item!', newItem, result)
       // TODO: Do we need to be more discriminating about which parts of itemData we return?
-      return newItem
+      newItemData[item.itemId] = newItem
     } catch (e) {
       console.log(e)
     }

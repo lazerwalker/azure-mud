@@ -116,7 +116,7 @@ export default function RoomView (props: Props) {
           (self as any).holding = itemData[parsedAction.directObject.itemId]
         }
 
-        await dispatchStoryboardAction(action, {
+        await dispatchStoryboardAction(parsedAction, {
           itemData: itemData,
           player: self,
           dispatch
