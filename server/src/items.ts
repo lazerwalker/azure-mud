@@ -1,3 +1,13 @@
+/** STORYBOARD TODO
+ * - Why isn't clickableItem working?
+ * - Confirm client side is working 100% as expected
+ * - Update description from database
+ * - Send new description from client to db (or dispatch event on server?)
+ * - Insert new todo items here as they come in
+ * - Test multiplayer
+ * - Fix grammar issues
+ */
+
 export type Item = {
   // These fields are considered immutable
   // Anything else can be modified and read from the DB
