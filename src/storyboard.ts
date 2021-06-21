@@ -1,3 +1,9 @@
+// 6/16 NOTE FOR TOMORROW EM
+// My "node history length > 0" check is presumably faulty
+// Since some items will expectedly not trigger a node, they'll never have a successful state check
+// Conceptually, I want two events to listen to:
+// Either "A node was finished!" or "We found no bag nodes"
+
 import { MinimalUser } from '../server/src/user'
 import { Action, CommandMessageAction, ItemMapAction } from './Actions'
 import { dropItem, sendChatMessage } from './networking'
@@ -53,7 +59,9 @@ export async function dispatchStoryboardAction (action: TextInput, params: {item
         delete result[i]
       })
       newItem = { ...newItem, ...result }
-      console.log('Attempted action on item!', newItem, result)
+
+      // TODO: At *this* point, cauldron clickableAction is set when it shouldn't be
+      console.log(`Attempted action on item! ${item.itemId}`, newItem, result)
       // TODO: Do we need to be more discriminating about which parts of itemData we return?
       newItemData[item.itemId] = newItem
     } catch (e) {
@@ -103,6 +111,7 @@ export async function attemptActionOnItem (params: { action?: TextInput, itemSta
 
       game.addOutput('dropItem', (itemId, passageId) => {
         dropItem()
+        game.completePassage(passageId)
       })
 
       game.addOutput('calculateNewColor', (inputColor, passageId) => {
@@ -135,11 +144,21 @@ export async function attemptActionOnItem (params: { action?: TextInput, itemSta
       })
 
       game.stateListener = (state) => {
+        // We only want to fire this logic after a node is finished.
+        // The handler signature should be something like
+        // game.addEventListener('nodeComplete', (nodeId, state) => {
+        // But this check is a hacky stopgap for now ("for now" ;))
+        if (itemState.itemId === 'cauldron') {
+          console.log('In state listener for cauldron', state.bag, state.clickableAction)
+        }
+        if (Object.keys(state.bag.nodeHistory).length === 0) { return }
+
         if (state.player && state.player.holding) {
           delete state.player.holding.player
         }
 
-        console.log('New state', state)
+        console.log(`Resolving state for ${itemState.itemId}`, state)
+
         resolve(state)
 
         // TODO: Actually stop things!

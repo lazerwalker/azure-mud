@@ -1,10 +1,10 @@
 /** STORYBOARD TODO
- * - Why isn't clickableItem working?
- * - Confirm client side is working 100% as expected
- * - Update description from database
  * - Send new description from client to db (or dispatch event on server?)
- * - Insert new todo items here as they come in
+ * - Update description from database
+ * - Test case: at this point, I should be able to make the cauldron blue and then refresh
+ * - Fix bad scripting (e.g. all 3 items should work)
  * - Test multiplayer
+ * - Insert new todo items here as they come in
  * - Fix grammar issues
  */
 
@@ -58,13 +58,14 @@ const itemDefinitions: ItemMap = {
       ## pour
       [action.verb is "pour" and action.directObject.isColorant]
       calculateNewColor: {action.directObject.color}
+      unset clickableAction
+      dropItem: {action.directObject.itemId}
 
       -- TODO: I would love if we could do conditionals within strings, and include this as a single code path, a la modern React code
       [if color isnt oldcolor]
         printAction: "pours the {action.directObject.shortDescription} into the cauldron. The liquid sputters and turns {color}."
       [if color is oldcolor]
         printAction: "pours the {action.directObject.shortDescription} into the cauldron. There is no visible change to the liquid."
-      dropItem: {action.directObject.itemId}
 
       ## resetColor
       [action.verb is "pull" and action.directObject.itemId is "lever"]

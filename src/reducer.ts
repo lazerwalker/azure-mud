@@ -270,7 +270,11 @@ export default (oldState: State, action: Action): State => {
   }
 
   if (action.type === ActionType.ItemMap) {
-    state.itemData = { ...state.itemData, ...action.value }
+    // TODO: The current behavior lets us explicitly unset variables.
+    // this is helpful for string interpolation,but might have unintented consequences.
+    // For context, this used to be { ...state.itemData, ...action.value }
+    state.itemData = { ...action.value }
+    console.log(state.itemData)
   }
 
   if (action.type === ActionType.PlayerBanned) {
